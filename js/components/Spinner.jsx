@@ -12,8 +12,7 @@ const spin = keyframes`
 
 const Image = styled.img`
   animation: ${spin} 4s infinite linear;
-  height: 100%;
-  width: 100%;
+  width: 500px;
 `;
 
 const Spinner = () => (
