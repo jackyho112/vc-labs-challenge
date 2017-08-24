@@ -37,12 +37,14 @@ class Song extends Component {
           {JSON.stringify(omit(song, ['id']), null, 4)}
         </pre>
         <button
-          onClick={() => addSongToPlayList(selectedPlaylistOption.value, song)}
+          onClick={() =>
+            selectedPlaylistOption
+              ? addSongToPlayList(selectedPlaylistOption.value, song)
+              : null}
         >
           Add to playlist
         </button>
         <Select
-          name="playlist-select"
           value={selectedPlaylistOption}
           options={playlistOptions}
           onChange={newlySelectedPlaylistOption =>

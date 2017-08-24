@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import { findIndex, assign, find, filter } from 'lodash';
+import { findIndex, assign, find, filter, sortBy } from 'lodash';
 import Song from '../components/Song';
 import Playlist from '../components/Playlist';
 import PlaylistForm from '../components/PlaylistForm';
+import SortingBar from '../components/SortingBar';
+import songSortingOptions from '../constants/songSortingOptions';
 import {
   getAllSongs,
   getAllPlaylists,
@@ -20,7 +22,9 @@ class Landing extends Component {
       songs: [],
       playlists: [],
       currentPlayListId: null,
-      playlistOptions: []
+      playlistOptions: [],
+      currentSongSortingOption: songSortingOptions[0],
+      reverseSongOrder: false
     };
   }
 
@@ -39,6 +43,7 @@ class Landing extends Component {
     const playlist = find(playlists, { id: playlistId });
 
     if (playlist.songs.includes(song.id)) {
+      alert('Song already on playlist');
       return true;
     }
 
@@ -50,7 +55,9 @@ class Landing extends Component {
 
       playlists[playlistIndex] = newPlaylist;
 
-      this.setState({ playlists: [...playlists] });
+      this.setState({ playlists: [...playlists] }, () =>
+        alert('Song added to playlist')
+      );
     });
   };
 
@@ -72,9 +79,22 @@ class Landing extends Component {
   };
 
   renderSongList = () => {
-    const { playlists, currentPlayListId, playlistOptions } = this.state;
+    const {
+      playlists,
+      currentPlayListId,
+      playlistOptions,
+      currentSongSortingOption,
+      reverseSongOrder
+    } = this.state;
 
-    let songs = this.state.songs;
+    let songs = sortBy(
+      this.state.songs,
+      song => song[currentSongSortingOption.value]
+    );
+
+    if (reverseSongOrder) {
+      songs = songs.reverse();
+    }
 
     if (currentPlayListId !== null) {
       const { songs: includedSongIds } = find(playlists, {
@@ -97,6 +117,17 @@ class Landing extends Component {
     );
   };
 
+  renderSongSortingBar = () => (
+    <SortingBar
+      currentOption={this.state.currentSongSortingOption}
+      options={songSortingOptions}
+      selectAsCurrent={currentSongSortingOption =>
+        this.setState({ currentSongSortingOption })}
+      reverseOrder={() =>
+        this.setState({ reverseSongOrder: !this.state.reverseSongOrder })}
+    />
+  );
+
   renderPlaylistList = () => (
     <div>
       {this.state.playlists.map(playlist => (
@@ -114,7 +145,7 @@ class Landing extends Component {
   );
 
   render() {
-    const { renderSongList, renderPlaylistList } = this;
+    const { renderSongList, renderPlaylistList, renderSongSortingBar } = this;
 
     const Div = styled.div`
       margin: 20px;
@@ -125,7 +156,8 @@ class Landing extends Component {
         <h4>Playlists</h4>
         {renderPlaylistList()}
         <PlaylistForm addPlayList={name => this.addPlayList(name)} />
-        <h4>Songs</h4>
+        <h4>Songs sorted by</h4>
+        {renderSongSortingBar()}
         {renderSongList()}
       </Div>
     );
