@@ -1,11 +1,12 @@
 import axios from 'axios';
 
 const apiAddress = 'http://localhost:5000';
+const maxNumOfRecord = 200;
 
 export function getAllSongs(successCallback) {
   return axios
     .get(`${apiAddress}/library/`)
-    .then(response => successCallback(response.data.slice(0, 100)))
+    .then(response => successCallback(response.data.slice(0, maxNumOfRecord)))
     .catch(error => {
       console.error('axios error', error); // eslint-disable-line no-console
     });
@@ -14,7 +15,7 @@ export function getAllSongs(successCallback) {
 export function getAllPlaylists(successCallback) {
   return axios
     .get(`${apiAddress}/playlist/`)
-    .then(response => successCallback(response.data.slice(0, 100)))
+    .then(response => successCallback(response.data.slice(0, maxNumOfRecord)))
     .catch(error => {
       console.error('axios error', error); // eslint-disable-line no-console
     });
