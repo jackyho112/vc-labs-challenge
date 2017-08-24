@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import styled from 'styled-components';
 import { omit } from 'lodash';
@@ -10,7 +10,7 @@ const Div = styled.div`
   padding: 10px;
 `;
 
-class Song extends Component {
+class Song extends PureComponent {
   constructor(props) {
     super(props);
 

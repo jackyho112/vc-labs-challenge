@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import styled from 'styled-components';
 
 const Div = styled.div`
@@ -9,7 +9,7 @@ const Input = styled.input`
   margin-right: 5px;
 `;
 
-class PlaylistForm extends Component {
+class PlaylistForm extends PureComponent {
   constructor(props) {
     super(props);
     this.state = { newPlaylistName: '' };
