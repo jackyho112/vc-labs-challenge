@@ -1,12 +1,12 @@
 # vc-labs-challenge
 
-# Installation
+## Installation
 
 ```bash
   yarn
 ```
 
-# Testing on your browser/Development
+## Testing on your browser/Development
 
 ```bash
   yarn dev
@@ -14,7 +14,7 @@
 
 Once the build is finished, go to [the app](http://localhost:8080/).
 
-# Production
+## Production
 
 ```bash
   yarn build && yarn start
