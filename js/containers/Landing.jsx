@@ -5,6 +5,7 @@ import Song from '../components/Song';
 import Playlist from '../components/Playlist';
 import PlaylistForm from '../components/PlaylistForm';
 import SortingBar from '../components/SortingBar';
+import PlaylistList from '../components/PlaylistList';
 import songSortingOptions from '../constants/songSortingOptions';
 import {
   getAllSongs,
@@ -128,24 +129,13 @@ class Landing extends Component {
     />
   );
 
-  renderPlaylistList = () => (
-    <div>
-      {this.state.playlists.map(playlist => (
-        <Playlist
-          playlist={playlist}
-          key={playlist.id}
-          isCurrent={this.state.currentPlayListId === playlist.id}
-          selectAsCurrent={playlistId =>
-            this.setState({
-              currentPlayListId: playlistId
-            })}
-        />
-      ))}
-    </div>
-  );
-
   render() {
-    const { renderSongList, renderPlaylistList, renderSongSortingBar } = this;
+    const {
+      renderSongList,
+      renderPlaylistList,
+      renderSongSortingBar,
+      state: { currentPlayListId, playlists }
+    } = this;
 
     const Div = styled.div`
       margin: 20px;
@@ -154,7 +144,15 @@ class Landing extends Component {
     return (
       <Div>
         <h4>Playlists</h4>
-        {renderPlaylistList()}
+        <PlaylistList
+          playlists={playlists}
+          currentPlayListId={currentPlayListId}
+          setCurrentPlaylist={playlistId =>
+            this.setState({
+              currentPlayListId:
+                currentPlayListId === playlistId ? null : playlistId
+            })}
+        />
         <PlaylistForm addPlayList={name => this.addPlayList(name)} />
         <h4>Songs sorted by</h4>
         {renderSongSortingBar()}
