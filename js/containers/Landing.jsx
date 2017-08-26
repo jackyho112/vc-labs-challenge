@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import { findIndex, assign, find, filter, sortBy } from 'lodash';
+import { findIndex, assign, find, filter, sortBy, uniq } from 'lodash';
 import Song from '../components/Song';
 import Playlist from '../components/Playlist';
 import PlaylistForm from '../components/PlaylistForm';
 import SortingBar from '../components/SortingBar';
 import PlaylistList from '../components/PlaylistList';
+import SongList from '../components/SongList';
 import songSortingOptions from '../constants/songSortingOptions';
 import {
   getAllSongs,
@@ -30,13 +31,17 @@ class Landing extends Component {
   }
 
   componentDidMount() {
-    getAllSongs(songs => this.setState({ songs }));
-    getAllPlaylists(playlists =>
-      this.setState({
-        playlists,
-        playlistOptions: convertPlaylistsToSelectOptions(playlists)
-      })
-    );
+    Promise.all([
+      getAllSongs(),
+      getAllPlaylists()
+    ]).then(responses => {
+      const initialData = {};
+      const playlists = responses[1].data;
+      initialData.songs = responses[0].data;
+      initialData.playlists = playlists;
+      initialData.playlistOptions = convertPlaylistsToSelectOptions(playlists);
+      this.setState(initialData);
+    })
   }
 
   addSongToPlayList = (playlistId, song) => {
@@ -48,15 +53,16 @@ class Landing extends Component {
       return true;
     }
 
-    addSongToPlayList(playlist, song.id, () => {
-      const playlistIndex = findIndex(playlists, { id: playlist.id });
-      const newPlaylist = assign({}, playlist, {
-        songs: playlist.songs.concat(song.id)
+    addSongToPlayList(playlist, song.id).then(() => {
+      const latestPlaylists = this.state.playlists;
+      const playlistIndex = findIndex(latestPlaylists, { id: playlist.id });
+      const newPlaylist = assign({}, latestPlaylists[playlistIndex], {
+        songs: uniq(playlist.songs.concat(song.id))
       });
 
-      playlists[playlistIndex] = newPlaylist;
+      latestPlaylists[playlistIndex] = newPlaylist;
 
-      this.setState({ playlists: [...playlists] }, () =>
+      this.setState({ playlists: [...latestPlaylists] }, () =>
         alert('Song added to playlist')
       );
     });
@@ -69,8 +75,11 @@ class Landing extends Component {
       return;
     }
 
-    addPlayList({ name: playlistName }, playlist => {
-      const newPlaylists = [playlist, ...playlists];
+    addPlayList({ name: playlistName }).then(response => {
+      const newPlaylists = [
+        {name: playlistName, songs: [], id: response.data.id},
+        ...this.state.playlists
+      ];
 
       this.setState({
         playlists: newPlaylists,
@@ -79,62 +88,20 @@ class Landing extends Component {
     });
   };
 
-  renderSongList = () => {
-    const {
-      playlists,
-      currentPlayListId,
-      playlistOptions,
-      currentSongSortingOption,
-      reverseSongOrder
-    } = this.state;
-
-    let songs = sortBy(
-      this.state.songs,
-      song => song[currentSongSortingOption.value]
-    );
-
-    if (reverseSongOrder) {
-      songs = songs.reverse();
-    }
-
-    if (currentPlayListId !== null) {
-      const { songs: includedSongIds } = find(playlists, {
-        id: currentPlayListId
-      });
-      songs = filter(songs, song => includedSongIds.includes(song.id));
-    }
-
-    return (
-      <div>
-        {songs.map(song => (
-          <Song
-            song={song}
-            key={song.id}
-            playlistOptions={playlistOptions}
-            addSongToPlayList={this.addSongToPlayList}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  renderSongSortingBar = () => (
-    <SortingBar
-      currentOption={this.state.currentSongSortingOption}
-      options={songSortingOptions}
-      selectAsCurrent={currentSongSortingOption =>
-        this.setState({ currentSongSortingOption })}
-      reverseOrder={() =>
-        this.setState({ reverseSongOrder: !this.state.reverseSongOrder })}
-    />
-  );
-
   render() {
     const {
       renderSongList,
       renderPlaylistList,
       renderSongSortingBar,
-      state: { currentPlayListId, playlists }
+      addSongToPlayList,
+      state: {
+        songs,
+        playlists,
+        currentPlayListId,
+        playlistOptions,
+        currentSongSortingOption,
+        reverseSongOrder
+      }
     } = this;
 
     const Div = styled.div`
@@ -144,6 +111,7 @@ class Landing extends Component {
     return (
       <Div>
         <h4>Playlists</h4>
+
         <PlaylistList
           playlists={playlists}
           currentPlayListId={currentPlayListId}
@@ -153,10 +121,29 @@ class Landing extends Component {
                 currentPlayListId === playlistId ? null : playlistId
             })}
         />
+
         <PlaylistForm addPlayList={name => this.addPlayList(name)} />
+
         <h4>Songs sorted by</h4>
-        {renderSongSortingBar()}
-        {renderSongList()}
+
+        <SortingBar
+          currentOption={this.state.currentSongSortingOption}
+          options={songSortingOptions}
+          selectAsCurrent={currentSongSortingOption =>
+            this.setState({ currentSongSortingOption })}
+          reverseOrder={() =>
+            this.setState({ reverseSongOrder: !this.state.reverseSongOrder })}
+        />
+
+        <SongList
+          rawSongs={songs}
+          playlists={playlists}
+          currentPlayListId={currentPlayListId}
+          playlistOptions={playlistOptions}
+          currentSongSortingOption={currentSongSortingOption}
+          reverseSongOrder={reverseSongOrder}
+          addSongToPlayList={addSongToPlayList}
+        />
       </Div>
     );
   }

@@ -1,12 +1,10 @@
 import axios from 'axios';
 
 const apiAddress = 'http://localhost:5000';
-const maxNumOfRecord = 200;
 
 export function getAllSongs(successCallback) {
   return axios
     .get(`${apiAddress}/library/`)
-    .then(response => successCallback(response.data.slice(0, maxNumOfRecord)))
     .catch(error => {
       console.error('axios error', error); // eslint-disable-line no-console
     });
@@ -15,19 +13,17 @@ export function getAllSongs(successCallback) {
 export function getAllPlaylists(successCallback) {
   return axios
     .get(`${apiAddress}/playlist/`)
-    .then(response => successCallback(response.data.slice(0, maxNumOfRecord)))
     .catch(error => {
       console.error('axios error', error); // eslint-disable-line no-console
     });
 }
 
-export function addSongToPlayList(playlist, songId, successCallback) {
+export function addSongToPlayList(playlist, songId) {
   return axios
     .post(
       `${apiAddress}/playlist/${playlist.id}/`,
       Object.assign({}, playlist, { songs: playlist.songs.concat(songId) })
     )
-    .then(() => successCallback())
     .catch(error => {
       console.error('axios error', error); // eslint-disable-line no-console
     });
@@ -38,10 +34,6 @@ export function addPlayList(playlist, successCallback) {
 
   return axios
     .post(`${apiAddress}/playlist/`, newPlaylist)
-    .then(response => {
-      newPlaylist.id = response.data.id;
-      successCallback(newPlaylist);
-    })
     .catch(error => {
       console.error('axios error', error); // eslint-disable-line no-console
     });
